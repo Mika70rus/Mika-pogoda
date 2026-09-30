@@ -30,7 +30,8 @@ async function loadRadar(){try{const d=await fetch("https://api.rainviewer.com/p
 function setup2gisSettings(){const input=$("dgisKey"),btn=$("saveDgisKey");if(!input||!btn)return;input.value=get2gisKey();btn.onclick=()=>{const key=input.value.trim();if(key)localStorage.setItem("mika-2gis-key",key);else localStorage.removeItem("mika-2gis-key");location.reload()}}
 
 function openScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));const nav=document.querySelector('nav button[data-screen="'+id+'"]');if(nav)nav.classList.add("active");if(id==="map"){setTimeout(()=>map?.resize(),100);loadRadar()}}
-$("settingsToggle")?.addEventListener("click",()=>openScreen("settings"));
+$("settingsToggle")?.addEventListener("click",()=>{$("settings").hidden=!$("settings").hidden});
+$("closeSettings")?.addEventListener("click",()=>{$("settings").hidden=true});
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{openScreen(b.dataset.screen)});document.querySelector("nav button").classList.add("active");$("refresh").onclick=()=>{loadWeather();loadKp();if(map)loadRadar()};loadWeather();loadKp();if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
 
 async function loadCameraObservations(){

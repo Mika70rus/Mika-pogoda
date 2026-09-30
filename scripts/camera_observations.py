@@ -3,19 +3,36 @@ import json, os, subprocess, tempfile, math
 from datetime import datetime, timezone
 
 CAMERAS = [
+  {"id":"plekhanova-4","name":"Плеханова, 4","url":"http://admin.tomsk.ru/cam/cam1/cam1.m3u8"},
+  {"id":"tom-parus-admin","name":"Томь — Парус (резерв)","url":"http://admin.tomsk.ru/cam/cam4/cam4.m3u8"},
   {"id":"lenina-tihiy","name":"Ленина — Тихий","url":"http://cdn08.vtomske.ru/hls/stream1.m3u8"},
   {"id":"yuzhnaya","name":"Площадь Южная","url":"http://cdn08.vtomske.ru/hls/stream6.m3u8"},
   {"id":"tom-river-1","name":"Томь","url":"http://cdn08.vtomske.ru/hls/stream9.m3u8"},
   {"id":"tom-river-2","name":"Томь — камера 2","url":"http://cdn08.vtomske.ru/hls/stream2.m3u8"},
   {"id":"transportnaya","name":"Транспортная площадь","url":"http://cdn08.vtomske.ru/hls/stream8.m3u8"},
+  {"id":"tomsk-admin-3","name":"Муниципальная камера 3 (резерв)","url":"http://admin.tomsk.ru/cam/cam3/cam3.m3u8"},
 ]
 
 OUT="data/camera-observations.json"
 
 def capture(url, path):
-    cmd=["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","10000000",
-         "-i",url,"-frames:v","1","-q:v","4",path]
-    return subprocess.run(cmd,timeout=25).returncode == 0 and os.path.exists(path)
+    attempts = [
+        ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","15000000",
+         "-user_agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+         "-i",url,"-frames:v","1","-q:v","5",path],
+        ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","15000000",
+         "-http_persistent","0","-i",url,"-frames:v","1","-q:v","5",path],
+    ]
+    for cmd in attempts:
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+            r=subprocess.run(cmd,timeout=35)
+            if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 1000:
+                return True
+        except Exception:
+            pass
+    return False
 
 def analyze(path):
     try:

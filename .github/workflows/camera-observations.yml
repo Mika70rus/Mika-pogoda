@@ -1,0 +1,29 @@
+name: Camera observations
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - "data/camera-observations.json"
+  schedule:
+    - cron: "*/10 * * * *"
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg and Pillow
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check Pillow
+      - name: Capture and analyze camera frames
+        run: python scripts/camera_observations.py
+      - name: Save observations
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/camera-observations.json
+          git diff --cached --quiet || git commit -m "Update camera observations"
+          git push

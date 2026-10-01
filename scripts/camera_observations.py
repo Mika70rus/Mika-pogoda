@@ -3,7 +3,7 @@ import json, os, subprocess, tempfile, math
 from datetime import datetime, timezone
 
 CAMERAS = [
-  {"id":"plekhanova-4","name":"Плеханова, 4","url":"http://admin.tomsk.ru/cam/cam1/cam1.m3u8"},
+  {"id":"plekhanova-4","name":"Плеханова, 4","url":"http://cdn08.vtomske.ru/cam/cam3/cam3.m3u8"},
   {"id":"tom-parus-admin","name":"Томь — Парус (резерв)","url":"http://admin.tomsk.ru/cam/cam4/cam4.m3u8"},
   {"id":"lenina-tihiy","name":"Ленина — Тихий","url":"http://cdn08.vtomske.ru/hls/stream1.m3u8"},
   {"id":"yuzhnaya","name":"Площадь Южная","url":"http://cdn08.vtomske.ru/hls/stream6.m3u8"},
@@ -66,7 +66,7 @@ def main():
         for c in CAMERAS:
             path=os.path.join(td,c["id"]+".jpg")
             ok=capture(c["url"],path)
-            item={"id":c["id"],"name":c["name"],"source":"pogoda.vtomske.ru / vtomske.ru","status":"ok" if ok else "offline","captured_at":stamp}
+            item={"id":c["id"],"name":c["name"],"source":"Geocam / vtomske.ru","status":"ok" if ok else "offline","captured_at":stamp}
             if ok:
                 item.update(analyze(path))
             results.append(item)

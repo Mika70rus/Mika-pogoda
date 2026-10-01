@@ -1,6 +1,7 @@
 const LAT=56.4977,LON=84.9744;let weather=null,models={},map,radarSource;
 const $=id=>document.getElementById(id),mm=h=>(h*.75006156).toFixed(0);
 const CAMERA_SOURCES=[
+{id:"plekhanova-4",name:"Плеханова, 4",stream:"http://cdn08.vtomske.ru/cam/cam3/cam3.m3u8",kind:"hls"},
 {id:"lenina-tihiy",name:"Ленина — Тихий",stream:"http://cdn08.vtomske.ru/hls/stream1.m3u8",kind:"hls"},
 {id:"yuzhnaya",name:"Площадь Южная",stream:"http://cdn08.vtomske.ru/hls/stream6.m3u8",kind:"hls"},
 {id:"tom-river-1",name:"Томь",stream:"http://cdn08.vtomske.ru/hls/stream9.m3u8",kind:"hls"},

@@ -15,45 +15,69 @@ CAMERAS = [
 
 OUT="data/camera-observations.json"
 
-def capture(url, path):
+def capture(url, paths):
     attempts = [
         ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","15000000",
          "-user_agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-         "-i",url,"-frames:v","1","-q:v","5",path],
+         "-i",url,"-t","6","-vf","fps=1","-q:v","5",os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
         ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","15000000",
-         "-http_persistent","0","-i",url,"-frames:v","1","-q:v","5",path],
+         "-http_persistent","0","-i",url,"-t","6","-vf","fps=1","-q:v","5",os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
     ]
     for cmd in attempts:
         try:
-            if os.path.exists(path):
-                os.remove(path)
-            r=subprocess.run(cmd,timeout=35)
-            if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 1000:
-                return True
+            for p in paths:
+                if os.path.exists(p):
+                    os.remove(p)
+            r=subprocess.run(cmd,timeout=45)
+            found=sorted([os.path.join(os.path.dirname(paths[0]),x) for x in os.listdir(os.path.dirname(paths[0])) if x.startswith("frame-") and x.endswith(".jpg")])
+            if r.returncode == 0 and found:
+                for i,p in enumerate(found[:len(paths)]):
+                    os.replace(p,paths[i])
+                return len(found[:len(paths)])
         except Exception:
             pass
-    return False
+    return 0
 
-def analyze(path):
+def analyze(paths):
     try:
-        from PIL import Image, ImageStat
-        im=Image.open(path).convert("RGB")
+        from PIL import Image, ImageStat, ImageChops
+        images=[Image.open(p).convert("RGB") for p in paths if os.path.exists(p)]
+        if not images:
+            return {"visual_confidence":0.0,"note":"Кадр не получен."}
+        im=images[-1]
         w,h=im.size
-        # Upper portion is used as a conservative proxy for the visible sky.
-        sky=im.crop((0,0,w,max(1,int(h*0.45)))).resize((64,32))
+        sky=im.crop((0,0,w,max(1,int(h*0.55)))).resize((64,32))
         stat=ImageStat.Stat(sky)
         r,g,b=stat.mean
         brightness=sum(stat.mean)/3
-        # Blue dominance is a weak clear-sky cue; low saturation/brightness can indicate cloud.
         blue=max(0.0,b-(r+g)/2)
         saturation=(max(stat.mean)-min(stat.mean))/max(1.0,brightness)
         cloud_index=max(0.0,min(100.0,68 - blue*1.2 + (0.45-saturation)*55))
+
+        motion=[]
+        for a,bimg in zip(images,images[1:]):
+            aa=a.crop((0,0,w,max(1,int(h*0.65)))).resize((96,54)).convert("L")
+            bb=bimg.crop((0,0,w,max(1,int(h*0.65)))).resize((96,54)).convert("L")
+            diff=ImageStat.Stat(ImageChops.difference(aa,bb)).mean[0]
+            motion.append(diff)
+        motion_score=sum(motion)/len(motion) if motion else 0.0
+
+        # This is deliberately a signal, not a definitive precipitation classifier.
+        if len(images)>=2 and motion_score >= 8 and brightness < 125:
+            precip_signal="возможны осадки"
+        elif len(images)>=2 and motion_score < 4:
+            precip_signal="осадки визуально не обнаружены"
+        else:
+            precip_signal="неуверенно"
+
         return {
           "frame_width": w, "frame_height": h,
           "brightness": round(brightness,1),
           "cloud_index": round(cloud_index,1),
-          "visual_confidence": 0.35,
-          "note": "Визуальная оценка облачности по кадру; осадки пока не классифицируются."
+          "temporal_motion": round(motion_score,2),
+          "precipitation_signal": precip_signal,
+          "visual_confidence": 0.45 if len(images)>=3 else 0.25,
+          "note": "Визуальный сигнал по серии кадров; не заменяет метеодатчик."
         }
     except Exception as e:
         return {"visual_confidence":0.0,"note":f"analysis_error:{type(e).__name__}"}
@@ -64,11 +88,11 @@ def main():
     stamp=datetime.now(timezone.utc).isoformat()
     with tempfile.TemporaryDirectory() as td:
         for c in CAMERAS:
-            path=os.path.join(td,c["id"]+".jpg")
-            ok=capture(c["url"],path)
-            item={"id":c["id"],"name":c["name"],"source":"Geocam / vtomske.ru","status":"ok" if ok else "offline","captured_at":stamp}
-            if ok:
-                item.update(analyze(path))
+            paths=[os.path.join(td,c["id"]+"-"+str(i)+".jpg") for i in range(1,4)]
+            frames=capture(c["url"],paths)
+            item={"id":c["id"],"name":c["name"],"source":"Geocam / vtomske.ru","status":"ok" if frames else "offline","captured_at":stamp,"frames_captured":frames}
+            if frames:
+                item.update(analyze(paths))
             results.append(item)
     with open(OUT,"w",encoding="utf-8") as f:
         json.dump(results,f,ensure_ascii=False,indent=2)

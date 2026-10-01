@@ -4,55 +4,55 @@
     "name": "Плеханова, 4",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "tom-parus-admin",
     "name": "Томь — Парус (резерв)",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "lenina-tihiy",
     "name": "Ленина — Тихий",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "yuzhnaya",
     "name": "Площадь Южная",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "tom-river-1",
     "name": "Томь",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "tom-river-2",
     "name": "Томь — камера 2",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "transportnaya",
     "name": "Транспортная площадь",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   },
   {
     "id": "tomsk-admin-3",
     "name": "Муниципальная камера 3 (резерв)",
     "source": "pogoda.vtomske.ru / vtomske.ru",
     "status": "offline",
-    "captured_at": "2026-10-01T00:31:30.590210+00:00"
+    "captured_at": "2026-10-01T00:59:23.306270+00:00"
   }
 ]

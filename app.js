@@ -2,11 +2,13 @@ const LAT=56.4977,LON=84.9744;let weather=null,models={},map,radarSource;
 const $=id=>document.getElementById(id),mm=h=>(h*.75006156).toFixed(0);
 const CAMERA_SOURCES=[
 {id:"plekhanova-4",name:"Плеханова, 4",stream:"http://cdn08.vtomske.ru/cam/cam3/cam3.m3u8",kind:"hls"},
+{id:"tom-parus-admin",name:"Томь — Парус",stream:"http://admin.tomsk.ru/cam/cam4/cam4.m3u8",kind:"hls"},
 {id:"lenina-tihiy",name:"Ленина — Тихий",stream:"http://cdn08.vtomske.ru/hls/stream1.m3u8",kind:"hls"},
 {id:"yuzhnaya",name:"Площадь Южная",stream:"http://cdn08.vtomske.ru/hls/stream6.m3u8",kind:"hls"},
 {id:"tom-river-1",name:"Томь",stream:"http://cdn08.vtomske.ru/hls/stream9.m3u8",kind:"hls"},
 {id:"tom-river-2",name:"Томь — камера 2",stream:"http://cdn08.vtomske.ru/hls/stream2.m3u8",kind:"hls"},
-{id:"transportnaya",name:"Транспортная площадь",stream:"http://cdn08.vtomske.ru/hls/stream8.m3u8",kind:"hls"}
+{id:"transportnaya",name:"Транспортная площадь",stream:"http://cdn08.vtomske.ru/hls/stream8.m3u8",kind:"hls"},
+{id:"tomsk-admin-3",name:"Муниципальная камера 3",stream:"http://admin.tomsk.ru/cam/cam3/cam3.m3u8",kind:"hls"}
 ];
 let cameraObservations=[];
 const MODEL_CONFIG={ecmwf_ifs:{name:"ECMWF IFS",short:"ECMWF"},icon_global:{name:"DWD ICON",short:"ICON"},ncep_gfs_global:{name:"NOAA GFS",short:"GFS"},cmc_gem_gdps:{name:"GEM",short:"GEM"}};
@@ -57,8 +59,10 @@ function renderCameraAnalysis(){
   const cloud=ok.map(x=>x.cloud_index).filter(Number.isFinite);
   const avg=cloud.length?Math.round(cloud.reduce((a,b)=>a+b,0)/cloud.length):null;
   const weather=avg===null?"нет визуальной оценки":avg<25?"по камерам преимущественно ясно":avg<60?"по камерам переменная облачность":"по камерам преимущественно облачно";
+  const precip=ok.map(x=>x.precipitation_signal).filter(Boolean);
+  const precipText=precip.includes("возможны осадки")?"возможны осадки":precip.length&&precip.every(x=>x==="осадки визуально не обнаружены")?"осадки не обнаружены":"сигнал осадков неуверенный";
   const fresh=ok.map(x=>x.captured_at).filter(Boolean).sort().at(-1);
-  el.innerHTML=`<div><b>Камер в анализе: ${ok.length}/${CAMERA_SOURCES.length}</b></div><div class="cameraSignal">📷 ${weather}</div><small class="muted">${avg===null?"":`Визуальный индекс облачности: ${avg}% · `}${fresh?"обновлено "+new Date(fresh).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}):""}</small>`;
+  el.innerHTML=`<div><b>Камер в анализе: ${ok.length}/${CAMERA_SOURCES.length}</b></div><div class="cameraSignal">📷 ${weather}</div><div class="cameraSignal">🌧 ${precipText}</div><small class="muted">${avg===null?"":`Визуальный индекс облачности: ${avg}% · `}${fresh?"обновлено "+new Date(fresh).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}):""}</small>`;
 }
 
 loadCameraObservations();setup2gisSettings();

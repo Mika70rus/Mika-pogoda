@@ -28,7 +28,7 @@ async function loadKp(){try{const d=await fetch("https://services.swpc.noaa.gov/
 function get2gisKey(){return (localStorage.getItem("mika-2gis-key")||"").trim()}
 function setMapStatus(text,show=true){const el=$("mapStatus");if(el){el.textContent=text;el.hidden=!show}}
 function addRadarSource(tile,addLayer){if(!map||!window.mapgl)return;if(radarSource){try{radarSource.destroy()}catch(e){}radarSource=null}radarSource=new mapgl.RasterTileSource(map,{url:(x,y,z)=>tile.replace("{z}",z).replace("{x}",x).replace("{y}",y),attribution:"RainViewer",attributes:{mikaRadar:"rainviewer"}});if(addLayer&&!document.getElementById("mika-radar-layer-added")){map.addLayer({id:"mika-rainviewer-layer",filter:["match",["sourceAttr","mikaRadar"],["rainviewer"],true,false],type:"raster",style:{opacity:.75}});document.body.insertAdjacentHTML("beforeend",'<span id="mika-radar-layer-added" hidden></span>')}}
-function init2gis(tile){const key=get2gisKey();if(!key){setMapStatus("Для карты 2ГИС введи API-ключ в разделе «Источники».");return false}if(!window.mapgl){setMapStatus("2ГИС загружается…");setTimeout(()=>init2gis(tile),250);return false}if(map)return true;map=new mapgl.Map("radar",{center:[LON,LAT],zoom:9,key});map.on("styleload",()=>{setMapStatus("",false);addRadarSource(tile,true)});return true}
+function init2gis(tile){const key=get2gisKey();if(!key){setMapStatus("Для карты 2ГИС введи API-ключ в ⚙ Настройки.");return false}if(!window.mapgl){setMapStatus("2ГИС загружается…");setTimeout(()=>init2gis(tile),250);return false}if(map)return true;map=new mapgl.Map("radar",{center:[LON,LAT],zoom:9,key});map.on("styleload",()=>{setMapStatus("",false);addRadarSource(tile,true)});return true}
 async function loadRadar(){try{const d=await fetch("https://api.rainviewer.com/public/weather-maps.json").then(r=>r.json()),frame=d.radar?.past?.at(-1);if(!frame)return;const tile=d.host+"/v2/radar/"+frame.path+"/256/{z}/{x}/{y}/2/1_1.png";$("radarTime").textContent=new Date(frame.time*1000).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});if(!get2gisKey()){setMapStatus("Карта 2ГИС готова — нужен API-ключ.",true);return}if(!map){init2gis(tile)}else{addRadarSource(tile,false);setMapStatus("",false)}}catch(e){$("radarTime").textContent="радар недоступен";setMapStatus("Не удалось загрузить радар.",true)}}
 function setup2gisSettings(){const input=$("dgisKey"),btn=$("saveDgisKey");if(!input||!btn)return;input.value=get2gisKey();btn.onclick=()=>{const key=input.value.trim();if(key)localStorage.setItem("mika-2gis-key",key);else localStorage.removeItem("mika-2gis-key");location.reload()}}
 
@@ -51,9 +51,12 @@ async function loadCameraObservations(){
 function renderCameraAnalysis(){
   const el=$("cameraAnalysis");
   if(!el)return;
-  const ok=cameraObservations.filter(x=>x && x.status==="ok");
+  const total=cameraObservations.length;
+  const now=Date.now();
+  const ok=cameraObservations.filter(x=>x && x.status==="ok" && x.captured_at && Number.isFinite(Date.parse(x.captured_at)) && (now-Date.parse(x.captured_at))<=25*60*1000);
+  const stale=cameraObservations.filter(x=>x && x.status==="ok" && x.captured_at && (now-Date.parse(x.captured_at))>25*60*1000);
   if(!ok.length){
-    el.innerHTML='<div class="muted">Камеры подключены. Жду первые наблюдения со сборщика.</div>';
+    el.innerHTML=`<div><b>Свежих наблюдений: 0/${total}</b></div><div class="cameraSignal">📷 Камеры временно не подтверждают обстановку</div><small class="muted">${stale.length?"Последние кадры устарели.":"Жду свежий кадр со сборщика."}</small>`;
     return;
   }
   const cloud=ok.map(x=>x.cloud_index).filter(Number.isFinite);
@@ -62,7 +65,7 @@ function renderCameraAnalysis(){
   const precip=ok.map(x=>x.precipitation_signal).filter(Boolean);
   const precipText=precip.includes("возможны осадки")?"возможны осадки":precip.length&&precip.every(x=>x==="осадки визуально не обнаружены")?"осадки не обнаружены":"сигнал осадков неуверенный";
   const fresh=ok.map(x=>x.captured_at).filter(Boolean).sort().at(-1);
-  el.innerHTML=`<div><b>Камер в анализе: ${ok.length}/${CAMERA_SOURCES.length}</b></div><div class="cameraSignal">📷 ${weather}</div><div class="cameraSignal">🌧 ${precipText}</div><small class="muted">${avg===null?"":`Визуальный индекс облачности: ${avg}% · `}${fresh?"обновлено "+new Date(fresh).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}):""}</small>`;
+  el.innerHTML=`<div><b>Свежих камер в анализе: ${ok.length}/${total}</b></div><div class="cameraSignal">📷 ${weather}</div><div class="cameraSignal">🌧 ${precipText}</div><small class="muted">${avg===null?"":`Визуальный индекс облачности: ${avg}% · `}${fresh?"обновлено "+new Date(fresh).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}):""}</small>`;
 }
 
 loadCameraObservations();setup2gisSettings();

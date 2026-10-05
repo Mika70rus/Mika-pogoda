@@ -14,6 +14,8 @@ CAMERAS = [
 ]
 
 OUT="data/camera-observations.json"
+AIRPORT_OUT="data/airport-observation.json"
+AIRPORT_URL="https://aviationweather.gov/api/data/metar?ids=UNTT&format=json"
 
 def capture(url, paths):
     attempts = [
@@ -83,6 +85,49 @@ def analyze(paths):
     except Exception as e:
         return {"visual_confidence":0.0,"note":f"analysis_error:{type(e).__name__}"}
 
+def fetch_airport():
+    import urllib.request
+    try:
+        req=urllib.request.Request(AIRPORT_URL,headers={
+            "User-Agent":"Mika-pogoda/1.0 (Tomsk weather project)"
+        })
+        with urllib.request.urlopen(req,timeout=20) as r:
+            rows=json.load(r)
+        if not rows:
+            raise RuntimeError("no METAR")
+        m=rows[0]
+        def num(key):
+            v=m.get(key)
+            return float(v) if isinstance(v,(int,float)) else None
+        stamp=m.get("reportTime") or m.get("receiptTime")
+        obs={
+            "station":"UNTT",
+            "name":"Томск · Богашёво",
+            "source":"NOAA/NWS Aviation Weather Center · METAR",
+            "status":"ok",
+            "observed_at": stamp,
+            "temp_c": num("temp"),
+            "dewpoint_c": num("dewp"),
+            "wind_dir_deg": m.get("wdir"),
+            "wind_speed_kt": num("wspd"),
+            "wind_gust_kt": num("wgst"),
+            "visibility_mi": m.get("visib"),
+            "pressure_hpa": num("altim") if num("altim") is not None else num("slp"),
+            "weather":" ".join(str(m.get("wxString") or "").split()),
+            "clouds":m.get("clouds") or [],
+            "raw":m.get("rawOb") or m.get("raw") or ""
+        }
+        return obs
+    except Exception as e:
+        return {
+            "station":"UNTT",
+            "name":"Томск · Богашёво",
+            "source":"NOAA/NWS Aviation Weather Center · METAR",
+            "status":"offline",
+            "observed_at":None,
+            "error":type(e).__name__
+        }
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     results=[]
@@ -98,7 +143,13 @@ def main():
     with open(OUT,"w",encoding="utf-8") as f:
         json.dump(results,f,ensure_ascii=False,indent=2)
         f.write("\n")
-    print(json.dumps(results,ensure_ascii=False,indent=2))
+
+    airport=fetch_airport()
+    with open(AIRPORT_OUT,"w",encoding="utf-8") as f:
+        json.dump(airport,f,ensure_ascii=False,indent=2)
+        f.write("\n")
+
+    print(json.dumps({"cameras":results,"airport":airport},ensure_ascii=False,indent=2))
 
 if __name__=="__main__":
     main()

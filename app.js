@@ -10,7 +10,7 @@ const CAMERA_SOURCES=[
 {id:"transportnaya",name:"Транспортная площадь",stream:"http://cdn08.vtomske.ru/hls/stream8.m3u8",kind:"hls"},
 {id:"tomsk-admin-3",name:"Муниципальная камера 3",stream:"http://admin.tomsk.ru/cam/cam3/cam3.m3u8",kind:"hls"}
 ];
-let cameraObservations=[];
+let cameraObservations=[];let airportObservation=null;
 const MODEL_CONFIG={ecmwf_ifs:{name:"ECMWF IFS",short:"ECMWF"},icon_global:{name:"DWD ICON",short:"ICON"},ncep_gfs_global:{name:"NOAA GFS",short:"GFS"},cmc_gem_gdps:{name:"GEM",short:"GEM"}};
 const wmo=c=>({0:"Ясно",1:"Преимущественно ясно",2:"Переменная облачность",3:"Пасмурно",45:"Туман",48:"Изморозь",51:"Морось",53:"Морось",55:"Морось",61:"Дождь",63:"Дождь",65:"Сильный дождь",71:"Снег",73:"Снег",75:"Сильный снег",80:"Ливни",81:"Ливни",82:"Сильные ливни",95:"Гроза"})[c]||"Погода";
 const icon=c=>c===0?"☀":c<4?"⛅":c>=95?"⛈":c>=70?"❄":c>=50?"🌧":"☁";
@@ -40,7 +40,7 @@ $("radarPlay")?.addEventListener("click",()=>{if(!radarFrames.length)return;cons
 function openScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));const nav=document.querySelector('nav button[data-screen="'+id+'"]');if(nav)nav.classList.add("active");if(id==="map"){setTimeout(()=>map?.resize(),100);loadRadar()}}
 $("settingsToggle")?.addEventListener("click",()=>{$("settings").hidden=!$("settings").hidden});
 $("closeSettings")?.addEventListener("click",()=>{$("settings").hidden=true});
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{openScreen(b.dataset.screen)});document.querySelector("nav button").classList.add("active");$("refresh").onclick=()=>{loadWeather();loadKp();if(map)loadRadar()};loadWeather();loadKp();if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{openScreen(b.dataset.screen)});document.querySelector("nav button").classList.add("active");$("refresh").onclick=()=>{loadWeather();loadKp();loadAirportObservation();loadCameraObservations();if(map)loadRadar()};loadWeather();loadKp();if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
 
 async function loadCameraObservations(){
   try{
@@ -53,6 +53,34 @@ async function loadCameraObservations(){
   renderCameraAnalysis();if(weather)renderConsensus();
 }
 
+async function loadAirportObservation(){
+  try{
+    const r=await fetch("./data/airport-observation.json?"+Date.now(),{cache:"no-store"});
+    if(!r.ok)throw Error(r.status);
+    airportObservation=await r.json();
+  }catch(e){airportObservation=null;}
+  renderAirportObservation();
+}
+
+function renderAirportObservation(){
+  const el=$("airportObservation");
+  if(!el)return;
+  const o=airportObservation;
+  if(!o||o.status!=="ok"||!Number.isFinite(o.temp_c)){
+    el.innerHTML='<div><b>Нет свежего METAR</b></div><small class="muted">Аэропортовое наблюдение временно недоступно.</small>';
+    return;
+  }
+  const temp=Math.round(o.temp_c);
+  const wind=Number.isFinite(o.wind_speed_kt)?Math.round(o.wind_speed_kt*1.852):null;
+  const gust=Number.isFinite(o.wind_gust_kt)?Math.round(o.wind_gust_kt*1.852):null;
+  const pressure=Number.isFinite(o.pressure_hpa)?mm(o.pressure_hpa):null;
+  const vis=typeof o.visibility_mi==="number"?Math.round(o.visibility_mi*1.60934)+" км":(o.visibility_mi?String(o.visibility_mi):"—");
+  const q=consensusTemp();
+  const delta=Number.isFinite(q.temp)&&Number.isFinite(o.temp_c)?o.temp_c-q.temp:null;
+  const seen=o.observed_at?new Date(o.observed_at):null;
+  const when=seen&&!Number.isNaN(seen.getTime())?seen.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tomsk"}):"—";
+  el.innerHTML=`<div class="obsMain"><div><span class="muted">Температура</span><b class="obsTemp">${temp}°</b></div><div><span class="muted">METAR</span><b>${when}</b></div></div><div class="airportGrid"><span>Точка <b>UNTT</b></span><span>Ветер <b>${wind==null?"—":wind+" км/ч"}${gust!=null?" · "+gust+" пор.":""}</b></span><span>Давление <b>${pressure==null?"—":pressure+" мм"}</b></span><span>Видимость <b>${vis}</b></span>${o.weather?'<span>Явления <b>'+o.weather+'</b></span>':""}</div><div class="cameraSignal">${delta==null?"":(delta>0?"Аэропорт теплее моделей на ":"Аэропорт холоднее моделей на ")+Math.abs(delta).toFixed(1)+"°"}</div><small class="muted">Фактическое наблюдение в Богашёво, не прогноз. Источник: NOAA/NWS AWC.</small>`;
+}
 function renderCameraAnalysis(){
   const el=$("cameraAnalysis");
   if(!el)return;
@@ -73,7 +101,7 @@ function renderCameraAnalysis(){
   el.innerHTML=`<div><b>Свежих камер в анализе: ${ok.length}/${total}</b></div><div class="cameraSignal">📷 ${weather}</div><div class="cameraSignal">🌧 ${precipText}</div><small class="muted">${avg===null?"":`Визуальный индекс облачности: ${avg}% · `}${fresh?"обновлено "+new Date(fresh).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}):""}</small>`;
 }
 
-loadCameraObservations();
+loadCameraObservations();loadAirportObservation();
 
 function updateClock(){const now=new Date();const time=new Intl.DateTimeFormat("ru-RU",{timeZone:"Asia/Tomsk",hour:"2-digit",minute:"2-digit"}).format(now);const date=new Intl.DateTimeFormat("ru-RU",{timeZone:"Asia/Tomsk",day:"2-digit",month:"2-digit",year:"numeric",weekday:"long"}).format(now);const el=$("clock");if(el)el.textContent=time+" "+date;}updateClock();setInterval(updateClock,1000);
 function cameraNote(){const now=Date.now(),ok=cameraObservations.filter(x=>x&&x.status==="ok"&&now-Date.parse(x.captured_at)<=25*60*1000);if(!ok.length)return"";const s=ok.map(x=>x.precipitation_signal);return s.includes("возможны осадки")?"Камеры: возможны осадки.":s.every(x=>x==="осадки визуально не обнаружены")?"Камеры: осадков не видно.":""}

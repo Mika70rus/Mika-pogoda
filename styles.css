@@ -2,3 +2,4 @@
 .headerActions{display:flex;gap:6px;align-items:center}
 
 .settingsPanel{position:fixed;inset:0;z-index:50;background:rgba(5,8,12,.88);overflow:auto;padding:16px 12px 90px}.settingsPanel[hidden]{display:none}.settingsPanel>.card{max-width:700px;margin:0 auto}
+.obsMain{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}.obsMain>div{display:flex;flex-direction:column;gap:4px}.obsTemp{font-size:34px;line-height:1.05}.airportGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.airportGrid span{padding:9px 10px;border-radius:12px;background:#10151d;color:#8e98a8}.airportGrid b{display:block;color:#eef2f7;margin-top:2px}.cameraSignal{margin-top:9px}.airportGrid span:nth-child(5){grid-column:1/-1}@media(max-width:420px){.airportGrid{grid-template-columns:1fr}.airportGrid span:nth-child(5){grid-column:auto}}

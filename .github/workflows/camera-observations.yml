@@ -1,9 +1,10 @@
-name: Camera observations
+name: Weather observations
 on:
   workflow_dispatch:
   push:
     paths-ignore:
       - "data/camera-observations.json"
+      - "data/airport-observation.json"
   schedule:
     - cron: "*/10 * * * *"
 permissions:
@@ -25,5 +26,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/camera-observations.json data/airport-observation.json
-          git diff --cached --quiet || git commit -m "Update camera observations"
+          git diff --cached --quiet || git commit -m "Update weather observations"
           git push

@@ -167,6 +167,7 @@ function renderTrustAnalysis(){
   const airportRow=airportFresh
     ? `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>${airportScore}</b><small>${sourceLabel(airportScore)} · ${Math.round(airportFreshness)}% свежести · ${airportTemp.toFixed(1)}°</small></div>`
     : `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>—</b><small>Нет свежего наблюдения</small></div>`;
+  const ensembleRow=`<div class="trustRow"><span>🧩 Ансамбль</span><b>${modelScore}</b><small>${sourceLabel(modelScore)} · ${validModels.length} моделей · разброс ${Number.isFinite(ensemble.spread)?ensemble.spread.toFixed(1):"—"}°</small></div>`;
   const cameraRow=cams.length
     ? `<div class="trustRow"><span>📷 Камеры</span><b>${cameraScore}</b><small>${sourceLabel(cameraScore)} · ${cams.length} свеж. · визуальная уверенность ${Math.round(visualAvg*100)}%</small></div>`
     : `<div class="trustRow"><span>📷 Камеры</span><b>—</b><small>Нет свежих кадров</small></div>`;
@@ -177,7 +178,7 @@ function renderTrustAnalysis(){
     const d=airportFresh?Math.abs(t-airportTemp):null;
     return `<div class="trustRow"><span>🌐 ${cfg.short}</span><b>${sc}</b><small>${sourceLabel(sc)} · ${Math.round(t)}°${d==null?"":" · Δ до UNTT "+d.toFixed(1)+"°"}</small></div>`;
   }).join("");
-  el.innerHTML=`<div class="trustWinner"><span class="muted">Сейчас больше доверяю</span><strong>${winner}</strong><b>${winnerScore}/100</b></div><div class="cameraSignal">${reason}</div><div class="trustRows">${airportRow}${cameraRow}${modelRows}</div><small class="muted">Эвристический рейтинг 0–100 для текущего состояния: свежесть + согласованность + сравнение с независимым наблюдением. Это не историческая статистическая точность.</small>`;
+  el.innerHTML=`<div class="trustWinner"><span class="muted">Сейчас больше доверяю</span><strong>${winner}</strong><b>${winnerScore}/100</b></div><div class="cameraSignal">${reason}</div><div class="trustRows">${airportRow}${ensembleRow}${cameraRow}${modelRows}</div><small class="muted">Эвристический рейтинг 0–100 для текущего состояния: свежесть + согласованность + сравнение с независимым наблюдением. Это не историческая статистическая точность.</small>`;
 }
 \nfunction renderCameraAnalysis(){
   const el=$("cameraAnalysis");

@@ -116,7 +116,7 @@ function renderTrustAnalysis(){
   const validModels=Object.keys(MODEL_CONFIG).filter(id=>Number.isFinite(models[id]?.current?.temperature_2m));
   const ensemble=consensusTemp();
   const airportTemp=Number(airportObservation?.temp_c);
-  const airportFresh=airportObservation?.status==="ok"&&Number.isFinite(airportTemp)&&freshnessScore(airportObservation.observed_at)>0;
+  const airportFresh=airportObservation?.status==="ok"&&Number.isFinite(airportTemp)&&freshnessScore(airportObservation.observed_at)>=75;
   const airportFreshness=airportFresh?freshnessScore(airportObservation.observed_at):0;
 
   let modelScore=35+(validModels.length>=4?15:validModels.length>=3?10:0);
@@ -166,7 +166,7 @@ function renderTrustAnalysis(){
 
   const airportRow=airportFresh
     ? `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>${airportScore}</b><small>${sourceLabel(airportScore)} · ${Math.round(airportFreshness)}% свежести · ${airportTemp.toFixed(1)}°</small></div>`
-    : `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>—</b><small>Нет свежего наблюдения</small></div>`;
+    : `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>—</b><small>${airportObservation?.status==="ok"?"METAR устарел":"Нет свежего наблюдения"}</small></div>`;
   const ensembleRow=`<div class="trustRow"><span>🧩 Ансамбль</span><b>${modelScore}</b><small>${sourceLabel(modelScore)} · ${validModels.length} моделей · разброс ${Number.isFinite(ensemble.spread)?ensemble.spread.toFixed(1):"—"}°</small></div>`;
   const cameraRow=cams.length
     ? `<div class="trustRow"><span>📷 Камеры</span><b>${cameraScore}</b><small>${sourceLabel(cameraScore)} · ${cams.length} свеж. · визуальная уверенность ${Math.round(visualAvg*100)}%</small></div>`

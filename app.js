@@ -50,7 +50,7 @@ async function loadCameraObservations(){
   }catch(e){
     cameraObservations=[];
   }
-  renderCameraAnalysis();if(weather)renderConsensus();
+  renderCameraAnalysis();renderTrustAnalysis();if(weather)renderConsensus();
 }
 
 async function loadAirportObservation(){
@@ -81,7 +81,105 @@ function renderAirportObservation(){
   const when=seen&&!Number.isNaN(seen.getTime())?seen.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tomsk"}):"—";
   el.innerHTML=`<div class="obsMain"><div><span class="muted">Температура</span><b class="obsTemp">${temp}°</b></div><div><span class="muted">METAR</span><b>${when}</b></div></div><div class="airportGrid"><span>Точка <b>UNTT</b></span><span>Ветер <b>${wind==null?"—":wind+" км/ч"}${gust!=null?" · "+gust+" пор.":""}</b></span><span>Давление <b>${pressure==null?"—":pressure+" мм"}</b></span><span>Видимость <b>${vis}</b></span>${o.weather?'<span>Явления <b>'+o.weather+'</b></span>':""}</div><div class="cameraSignal">${delta==null?"":(delta>0?"Аэропорт теплее моделей на ":"Аэропорт холоднее моделей на ")+Math.abs(delta).toFixed(1)+"°"}</div><small class="muted">Фактическое наблюдение в Богашёво, не прогноз. Источник: NOAA/NWS AWC.</small>`;
 }
-function renderCameraAnalysis(){
+
+function clamp(v,a=0,b=100){return Math.max(a,Math.min(b,v))}
+function freshnessScore(ts){
+  const t=Date.parse(ts||"");
+  if(!Number.isFinite(t))return 0;
+  const age=Math.max(0,(Date.now()-t)/60000);
+  if(age<=20)return 100;
+  if(age<=45)return 90;
+  if(age<=90)return 75;
+  if(age<=180)return 55;
+  return 30;
+}
+function sourceLabel(score){return score>=85?"Высокое":score>=65?"Хорошее":score>=45?"Среднее":"Низкое"}
+function modelTrustScore(id,ensemble,airportFresh){
+  const m=models[id],t=m?.current?.temperature_2m;
+  if(!Number.isFinite(t))return null;
+  let score=35;
+  if(Object.keys(models).filter(k=>Number.isFinite(models[k]?.current?.temperature_2m)).length>=4)score+=15;
+  else if(Object.keys(models).filter(k=>Number.isFinite(models[k]?.current?.temperature_2m)).length>=3)score+=10;
+  if(ensemble.spread<=1)score+=35;
+  else if(ensemble.spread<=2.5)score+=25;
+  else if(ensemble.spread<=4)score+=15;
+  if(airportFresh){
+    const at=Number(airportObservation?.temp_c);
+    const d=Math.abs(t-at);
+    score+=(d<=0.5?15:d<=1.5?10:d<=3?5:d<=5?-5:-15);
+  }
+  return Math.round(clamp(score));
+}
+function renderTrustAnalysis(){
+  const el=$("trustAnalysis");
+  if(!el)return;
+  const validModels=Object.keys(MODEL_CONFIG).filter(id=>Number.isFinite(models[id]?.current?.temperature_2m));
+  const ensemble=consensusTemp();
+  const airportTemp=Number(airportObservation?.temp_c);
+  const airportFresh=airportObservation?.status==="ok"&&Number.isFinite(airportTemp)&&freshnessScore(airportObservation.observed_at)>0;
+  const airportFreshness=airportFresh?freshnessScore(airportObservation.observed_at):0;
+
+  let modelScore=35+(validModels.length>=4?15:validModels.length>=3?10:0);
+  modelScore+=ensemble.spread<=1?35:ensemble.spread<=2.5?25:ensemble.spread<=4?15:5;
+  if(airportFresh){
+    const delta=Math.abs(airportTemp-ensemble.temp);
+    modelScore+=(delta<=0.5?10:delta<=1.5?6:delta<=3?2:delta<=5?-5:-12);
+  }
+  modelScore=Math.round(clamp(modelScore));
+
+  let airportScore=airportFresh?Math.round(70+airportFreshness*0.2):0;
+  if(airportFresh&&Number.isFinite(ensemble.temp)){
+    const delta=Math.abs(airportTemp-ensemble.temp);
+    airportScore+=delta<=1?10:delta<=2.5?7:delta<=4?3:-5;
+  }
+  airportScore=Math.round(clamp(airportScore,0,95));
+
+  const now=Date.now();
+  const cams=cameraObservations.filter(x=>x?.status==="ok"&&x.captured_at&&Number.isFinite(Date.parse(x.captured_at))&&now-Date.parse(x.captured_at)<=25*60*1000);
+  const visual=cams.map(x=>x.visual_confidence).filter(Number.isFinite);
+  const visualAvg=visual.length?visual.reduce((a,b)=>a+b,0)/visual.length:0;
+  const cameraSignals=cams.map(x=>x.precipitation_signal).filter(Boolean);
+  const cameraRain=cameraSignals.includes("возможны осадки");
+  const cameraDry=cameraSignals.length>0&&cameraSignals.every(x=>x==="осадки визуально не обнаружены");
+  const modelRain=validModels.length?Object.values(models).map(m=>m?.current?.precipitation).filter(Number.isFinite).filter(v=>v>=0.1).length>=Math.ceil(validModels.length/2):false;
+  let cameraScore=cams.length?25+Math.min(35,cams.length*10)+visualAvg*25:0;
+  if(cams.length&&(cameraRain===modelRain||cameraDry===!modelRain))cameraScore+=15;
+  else if(cams.length&&(cameraRain||cameraDry))cameraScore-=8;
+  cameraScore=Math.round(clamp(cameraScore));
+
+  let winner="Ансамблю моделей";
+  let winnerScore=modelScore;
+  let reason="Модели сейчас согласованы между собой.";
+  if(airportScore>=modelScore+5){
+    winner="Аэропорту UNTT";
+    winnerScore=airportScore;
+    reason=airportFresh?"Есть свежее инструментальное наблюдение, поэтому для текущего состояния ему доверяем больше модели.":"";
+  }else if(!airportFresh&&modelScore<55){
+    winner="Данных пока недостаточно";
+    winnerScore=modelScore;
+    reason="Нет свежего METAR и модели заметно расходятся.";
+  }
+  if(cams.length){
+    const cameraPhrase=cameraRain===modelRain&&cameraRain?"Камеры дополнительно подтверждают осадки.":cameraDry===!modelRain?"Камеры дополнительно подтверждают отсутствие осадков.":"Камеры не дают однозначного подтверждения.";
+    reason+=(reason?" ":"")+cameraPhrase;
+  }
+
+  const airportRow=airportFresh
+    ? `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>${airportScore}</b><small>${sourceLabel(airportScore)} · ${Math.round(airportFreshness)}% свежести · ${airportTemp.toFixed(1)}°</small></div>`
+    : `<div class="trustRow"><span>✈️ Аэропорт UNTT</span><b>—</b><small>Нет свежего наблюдения</small></div>`;
+  const cameraRow=cams.length
+    ? `<div class="trustRow"><span>📷 Камеры</span><b>${cameraScore}</b><small>${sourceLabel(cameraScore)} · ${cams.length} свеж. · визуальная уверенность ${Math.round(visualAvg*100)}%</small></div>`
+    : `<div class="trustRow"><span>📷 Камеры</span><b>—</b><small>Нет свежих кадров</small></div>`;
+  const modelRows=validModels.map(id=>{
+    const sc=modelTrustScore(id,ensemble,airportFresh);
+    const cfg=MODEL_CONFIG[id];
+    const t=models[id].current.temperature_2m;
+    const d=airportFresh?Math.abs(t-airportTemp):null;
+    return `<div class="trustRow"><span>🌐 ${cfg.short}</span><b>${sc}</b><small>${sourceLabel(sc)} · ${Math.round(t)}°${d==null?"":" · Δ до UNTT "+d.toFixed(1)+"°"}</small></div>`;
+  }).join("");
+  el.innerHTML=`<div class="trustWinner"><span class="muted">Сейчас больше доверяю</span><strong>${winner}</strong><b>${winnerScore}/100</b></div><div class="cameraSignal">${reason}</div><div class="trustRows">${airportRow}${cameraRow}${modelRows}</div><small class="muted">Эвристический рейтинг 0–100 для текущего состояния: свежесть + согласованность + сравнение с независимым наблюдением. Это не историческая статистическая точность.</small>`;
+}
+\nfunction renderCameraAnalysis(){
   const el=$("cameraAnalysis");
   if(!el)return;
   const total=cameraObservations.length;

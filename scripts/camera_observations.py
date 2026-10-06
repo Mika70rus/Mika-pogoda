@@ -203,10 +203,25 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         for c in CAMERAS:
             paths=[os.path.join(td,c["id"]+"-"+str(i)+".jpg") for i in range(1,4)]
-            frames,capture_error=capture(c["url"],paths)
-            item={"id":c["id"],"name":c["name"],"source":"Geocam / vtomske.ru","status":"ok" if frames else "offline","captured_at":stamp,"frames_captured":frames}
-            if capture_error:
-                item["capture_error"]=capture_error
+            probe_https=probe_url(c["url"])
+            http_url=c["url"].replace("https://","http://",1)
+            probe_http=probe_url(http_url)
+            frames,capture_error,capture_detail=capture(c["url"],paths)
+            item={
+                "id":c["id"],
+                "name":c["name"],
+                "source":"Geocam / vtomske.ru",
+                "status":"ok" if frames else "offline",
+                "captured_at":stamp if frames else None,
+                "checked_at":stamp,
+                "frames_captured":frames,
+                "diagnostic":{
+                    "https":probe_https,
+                    "http":probe_http,
+                    "ffmpeg_error":capture_error,
+                    "ffmpeg_detail":capture_detail
+                }
+            }
             if frames:
                 item.update(analyze(paths))
             results.append(item)

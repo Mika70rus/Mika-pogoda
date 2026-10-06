@@ -1,14 +1,9 @@
 const LAT=56.4977,LON=84.9744;let weather=null,models={},map,radarSource;
 const $=id=>document.getElementById(id),mm=h=>(h*.75006156).toFixed(0);
 const CAMERA_SOURCES=[
-{id:"plekhanova-4",name:"Плеханова, 4",stream:"http://cdn08.vtomske.ru/cam/cam3/cam3.m3u8",kind:"hls"},
-{id:"tom-parus-admin",name:"Томь — Парус",stream:"http://admin.tomsk.ru/cam/cam4/cam4.m3u8",kind:"hls"},
-{id:"lenina-tihiy",name:"Ленина — Тихий",stream:"http://cdn08.vtomske.ru/hls/stream1.m3u8",kind:"hls"},
-{id:"yuzhnaya",name:"Площадь Южная",stream:"http://cdn08.vtomske.ru/hls/stream6.m3u8",kind:"hls"},
-{id:"tom-river-1",name:"Томь",stream:"http://cdn08.vtomske.ru/hls/stream9.m3u8",kind:"hls"},
-{id:"tom-river-2",name:"Томь — камера 2",stream:"http://cdn08.vtomske.ru/hls/stream2.m3u8",kind:"hls"},
-{id:"transportnaya",name:"Транспортная площадь",stream:"http://cdn08.vtomske.ru/hls/stream8.m3u8",kind:"hls"},
-{id:"tomsk-admin-3",name:"Муниципальная камера 3",stream:"http://admin.tomsk.ru/cam/cam3/cam3.m3u8",kind:"hls"}
+{id:"plekhanova-4",name:"Плеханова, 4",stream:"https://cdn08.vtomske.ru/cam/cam3/cam3.m3u8",kind:"hls"},
+{id:"novo-sobornaya-2",name:"Площадь Ново-Соборная, 2",stream:"https://cdn08.vtomske.ru/cam/cam1/cam1.m3u8",kind:"hls"},
+{id:"tom-parus-tsu",name:"Томь — «Парус»",stream:"https://cdn08.vtomske.ru/hls/tsu_iro/index.m3u8",kind:"hls"}
 ];
 let cameraObservations=[];let airportObservation=null;
 const MODEL_CONFIG={ecmwf_ifs:{name:"ECMWF IFS",short:"ECMWF"},icon_global:{name:"DWD ICON",short:"ICON"},ncep_gfs_global:{name:"NOAA GFS",short:"GFS"},cmc_gem_gdps:{name:"GEM",short:"GEM"}};

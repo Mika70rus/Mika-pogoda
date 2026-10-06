@@ -17,34 +17,97 @@ OUT="data/camera-observations.json"
 AIRPORT_OUT="data/airport-observation.json"
 AIRPORT_URL="https://aviationweather.gov/api/data/metar?ids=UNTT&format=json"
 
+def probe_url(url):
+    """Return a small, safe network diagnosis for an HLS URL."""
+    import urllib.parse
+    host=urllib.parse.urlsplit(url).netloc
+    result={"url":url,"host":host,"http_status":None,"error":None,"kind":"unknown"}
+    try:
+        p=subprocess.run(
+            ["curl","-L","-sS","-o","/dev/null","-D","-","--max-time","15",
+             "-A","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+             "-e","https://geocam.ru/",url],
+            capture_output=True,text=True,timeout=20
+        )
+        headers=p.stdout or ""
+        lines=[x.strip() for x in headers.splitlines() if x.strip()]
+        statuses=[x for x in lines if x.upper().startswith("HTTP/")]
+        if statuses:
+            import re
+            m=re.search(r"HTTP/\S+\s+(\d+)",statuses[-1])
+            if m: result["http_status"]=int(m.group(1))
+        if p.returncode==0:
+            if result["http_status"] in (200,206):
+                result["kind"]="reachable"
+            elif result["http_status"]==403:
+                result["kind"]="forbidden"
+            elif result["http_status"]==404:
+                result["kind"]="not_found"
+            elif result["http_status"]:
+                result["kind"]="http_error"
+        else:
+            err=(p.stderr or "").strip().splitlines()
+            result["error"]=err[-1][:240] if err else f"curl_exit_{p.returncode}"
+            result["kind"]="network_error"
+    except subprocess.TimeoutExpired:
+        result["error"]="curl_timeout"
+        result["kind"]="timeout"
+    except Exception as e:
+        result["error"]=type(e).__name__
+        result["kind"]="probe_error"
+    return result
+
+def classify_ffmpeg(stderr, returncode=None):
+    text=(stderr or "").lower()
+    if "403 forbidden" in text or "access denied" in text:
+        return "http_403"
+    if "404 not found" in text or "server returned 404" in text:
+        return "http_404"
+    if "timed out" in text or "connection timed out" in text or "operation timed out" in text:
+        return "timeout"
+    if "connection refused" in text:
+        return "connection_refused"
+    if "could not resolve host" in text or "name or service not known" in text:
+        return "dns"
+    if "tls" in text or "ssl" in text or "certificate" in text:
+        return "tls"
+    if "invalid data" in text or "failed to parse" in text:
+        return "invalid_hls"
+    return f"ffmpeg_exit_{returncode}" if returncode is not None else "unknown"
+
 def capture(url, paths):
     attempts = [
         ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","30000000",
          "-user_agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-         "-headers","Referer: https://geocam.ru\r\nOrigin: https://geocam.ru\r\n",
-         "-i",url,"-t","6","-vf","fps=1","-q:v","5",os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
+         "-headers","Referer: https://geocam.ru/\r\nOrigin: https://geocam.ru/\r\n",
+         "-i",url,"-t","6","-vf","fps=1","-q:v","5",
+         os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
         ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","30000000",
-         "-http_persistent","0","-headers","Referer: https://geocam.ru\r\nOrigin: https://geocam.ru\r\n","-i",url,"-t","6","-vf","fps=1","-q:v","5",os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
+         "-http_persistent","0","-headers","Referer: https://geocam.ru/\r\nOrigin: https://geocam.ru/\r\n",
+         "-i",url,"-t","6","-vf","fps=1","-q:v","5",
+         os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
     ]
     errors=[]
-    for attempt,cmd in enumerate(attempts,1):
+    for cmd in attempts:
         try:
             for p in paths:
                 if os.path.exists(p):
                     os.remove(p)
-            r=subprocess.run(cmd,timeout=45,capture_output=True,text=True)
-            found=sorted([os.path.join(os.path.dirname(paths[0]),x) for x in os.listdir(os.path.dirname(paths[0])) if x.startswith("frame-") and x.endswith(".jpg")])
+            r=subprocess.run(cmd,capture_output=True,text=True,timeout=45)
+            found=sorted([os.path.join(os.path.dirname(paths[0]),x)
+                          for x in os.listdir(os.path.dirname(paths[0]))
+                          if x.startswith("frame-") and x.endswith(".jpg")])
             if r.returncode == 0 and found:
                 for i,p in enumerate(found[:len(paths)]):
                     os.replace(p,paths[i])
-                return len(found[:len(paths)]), ""
-            err=(r.stderr or "").strip().replace("\n"," | ")
-            errors.append(f"attempt {attempt}: rc={r.returncode}; {err[-600:] or 'no stderr'}")
+                return len(found[:len(paths)]), None, ""
+            errors.append({"kind":classify_ffmpeg(r.stderr,r.returncode),
+                           "detail":(r.stderr or "").strip().splitlines()[-1][:240] if (r.stderr or "").strip() else ""})
         except subprocess.TimeoutExpired:
-            errors.append(f"attempt {attempt}: timeout after 45s")
+            errors.append({"kind":"ffmpeg_timeout","detail":"ffmpeg process timeout"})
         except Exception as e:
-            errors.append(f"attempt {attempt}: {type(e).__name__}: {e}")
-    return 0, " || ".join(errors)
+            errors.append({"kind":"capture_exception","detail":type(e).__name__})
+    return 0, (errors[0]["kind"] if errors else "unknown"), (errors[0]["detail"] if errors else "")
 
 def analyze(paths):
     try:

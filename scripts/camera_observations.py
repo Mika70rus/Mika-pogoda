@@ -206,7 +206,20 @@ def main():
             probe_https=probe_url(c["url"])
             http_url=c["url"].replace("https://","http://",1)
             probe_http=probe_url(http_url)
-            frames,capture_error,capture_detail=capture(c["url"],paths)
+
+            capture_url=c["url"]
+            transport="https"
+            if probe_https.get("kind")!="reachable" and probe_http.get("kind")=="reachable":
+                capture_url=http_url
+                transport="http"
+
+            if probe_https.get("kind") not in ("reachable","forbidden") and probe_http.get("kind") not in ("reachable","forbidden"):
+                frames=0
+                capture_error=probe_https.get("kind") or probe_http.get("kind") or "network_unreachable"
+                capture_detail=probe_https.get("error") or probe_http.get("error") or "Both HTTP and HTTPS probes failed"
+            else:
+                frames,capture_error,capture_detail=capture(capture_url,paths)
+
             item={
                 "id":c["id"],
                 "name":c["name"],
@@ -216,6 +229,7 @@ def main():
                 "checked_at":stamp,
                 "frames_captured":frames,
                 "diagnostic":{
+                    "selected_transport":transport,
                     "https":probe_https,
                     "http":probe_http,
                     "ffmpeg_error":capture_error,

@@ -4,8 +4,8 @@
     "name": "Плеханова, 4",
     "source": "Geocam / vtomske.ru",
     "status": "ok",
-    "captured_at": "2026-10-06T05:28:42.487330+00:00",
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "captured_at": "2026-10-06T05:48:50.952119+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 3,
     "diagnostic": {
       "selected_transport": "https",
@@ -28,9 +28,9 @@
     },
     "frame_width": 1920,
     "frame_height": 1080,
-    "brightness": 129.0,
-    "cloud_index": 90.3,
-    "temporal_motion": 0.91,
+    "brightness": 136.4,
+    "cloud_index": 90.6,
+    "temporal_motion": 0.67,
     "precipitation_signal": "осадки визуально не обнаружены",
     "visual_confidence": 0.45,
     "note": "Визуальный сигнал по серии кадров; не заменяет метеодатчик."
@@ -41,7 +41,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -69,7 +69,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -77,18 +77,18 @@
         "url": "https://cdn08.vtomske.ru/hls/stream1.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15002 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "http": {
         "url": "http://cdn08.vtomske.ru/hls/stream1.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15001 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "ffmpeg_error": "network_error",
-      "ffmpeg_detail": "curl: (28) Operation timed out after 15002 milliseconds with 0 bytes received"
+      "ffmpeg_detail": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received"
     }
   },
   {
@@ -97,7 +97,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -112,7 +112,7 @@
         "url": "http://cdn08.vtomske.ru/hls/stream6.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15002 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "ffmpeg_error": "network_error",
@@ -125,7 +125,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -133,18 +133,18 @@
         "url": "https://cdn08.vtomske.ru/hls/stream9.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15001 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "http": {
         "url": "http://cdn08.vtomske.ru/hls/stream9.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15001 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "ffmpeg_error": "network_error",
-      "ffmpeg_detail": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received"
+      "ffmpeg_detail": "curl: (28) Operation timed out after 15001 milliseconds with 0 bytes received"
     }
   },
   {
@@ -153,7 +153,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -168,7 +168,7 @@
         "url": "http://cdn08.vtomske.ru/hls/stream2.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15001 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15002 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "ffmpeg_error": "network_error",
@@ -181,7 +181,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -189,18 +189,18 @@
         "url": "https://cdn08.vtomske.ru/hls/stream8.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15003 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "http": {
         "url": "http://cdn08.vtomske.ru/hls/stream8.m3u8",
         "host": "cdn08.vtomske.ru",
         "http_status": null,
-        "error": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received",
+        "error": "curl: (28) Operation timed out after 15002 milliseconds with 0 bytes received",
         "kind": "network_error"
       },
       "ffmpeg_error": "network_error",
-      "ffmpeg_detail": "curl: (28) Operation timed out after 15003 milliseconds with 0 bytes received"
+      "ffmpeg_detail": "curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received"
     }
   },
   {
@@ -209,7 +209,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-06T05:28:42.487330+00:00",
+    "checked_at": "2026-10-06T05:48:50.952119+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",

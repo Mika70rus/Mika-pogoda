@@ -21,25 +21,30 @@ def capture(url, paths):
     attempts = [
         ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","30000000",
          "-user_agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-         "-headers","Referer: https://geocam.ru/\r\nOrigin: https://geocam.ru\r\n",
+         "-headers","Referer: https://geocam.ru\r\nOrigin: https://geocam.ru\r\n",
          "-i",url,"-t","6","-vf","fps=1","-q:v","5",os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
         ["ffmpeg","-nostdin","-y","-loglevel","error","-rw_timeout","30000000",
          "-http_persistent","0","-headers","Referer: https://geocam.ru\r\nOrigin: https://geocam.ru\r\n","-i",url,"-t","6","-vf","fps=1","-q:v","5",os.path.join(os.path.dirname(paths[0]),"frame-%02d.jpg")],
     ]
-    for cmd in attempts:
+    errors=[]
+    for attempt,cmd in enumerate(attempts,1):
         try:
             for p in paths:
                 if os.path.exists(p):
                     os.remove(p)
-            r=subprocess.run(cmd,timeout=45)
+            r=subprocess.run(cmd,timeout=45,capture_output=True,text=True)
             found=sorted([os.path.join(os.path.dirname(paths[0]),x) for x in os.listdir(os.path.dirname(paths[0])) if x.startswith("frame-") and x.endswith(".jpg")])
             if r.returncode == 0 and found:
                 for i,p in enumerate(found[:len(paths)]):
                     os.replace(p,paths[i])
-                return len(found[:len(paths)])
-        except Exception:
-            pass
-    return 0
+                return len(found[:len(paths)]), ""
+            err=(r.stderr or "").strip().replace("\n"," | ")
+            errors.append(f"attempt {attempt}: rc={r.returncode}; {err[-600:] or 'no stderr'}")
+        except subprocess.TimeoutExpired:
+            errors.append(f"attempt {attempt}: timeout after 45s")
+        except Exception as e:
+            errors.append(f"attempt {attempt}: {type(e).__name__}: {e}")
+    return 0, " || ".join(errors)
 
 def analyze(paths):
     try:
@@ -135,8 +140,10 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         for c in CAMERAS:
             paths=[os.path.join(td,c["id"]+"-"+str(i)+".jpg") for i in range(1,4)]
-            frames=capture(c["url"],paths)
+            frames,capture_error=capture(c["url"],paths)
             item={"id":c["id"],"name":c["name"],"source":"Geocam / vtomske.ru","status":"ok" if frames else "offline","captured_at":stamp,"frames_captured":frames}
+            if capture_error:
+                item["capture_error"]=capture_error
             if frames:
                 item.update(analyze(paths))
             results.append(item)

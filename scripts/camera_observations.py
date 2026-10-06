@@ -4,13 +4,8 @@ from datetime import datetime, timezone
 
 CAMERAS = [
   {"id":"plekhanova-4","name":"Плеханова, 4","url":"https://cdn08.vtomske.ru/cam/cam3/cam3.m3u8"},
-  {"id":"tom-parus-admin","name":"Томь — Парус (резерв)","url":"https://admin.tomsk.ru/cam/cam4/cam4.m3u8"},
-  {"id":"lenina-tihiy","name":"Ленина — Тихий","url":"https://cdn08.vtomske.ru/hls/stream1.m3u8"},
-  {"id":"yuzhnaya","name":"Площадь Южная","url":"https://cdn08.vtomske.ru/hls/stream6.m3u8"},
-  {"id":"tom-river-1","name":"Томь","url":"https://cdn08.vtomske.ru/hls/stream9.m3u8"},
-  {"id":"tom-river-2","name":"Томь — камера 2","url":"https://cdn08.vtomske.ru/hls/stream2.m3u8"},
-  {"id":"transportnaya","name":"Транспортная площадь","url":"https://cdn08.vtomske.ru/hls/stream8.m3u8"},
-  {"id":"tomsk-admin-3","name":"Муниципальная камера 3 (резерв)","url":"https://admin.tomsk.ru/cam/cam3/cam3.m3u8"},
+  {"id":"novo-sobornaya-2","name":"Площадь Ново-Соборная, 2","url":"https://cdn08.vtomske.ru/cam/cam1/cam1.m3u8"},
+  {"id":"tom-parus-tsu","name":"Томь — «Парус»","url":"https://cdn08.vtomske.ru/hls/tsu_iro/index.m3u8"},
 ]
 
 OUT="data/camera-observations.json"

@@ -180,7 +180,8 @@ function renderTrustAnalysis(){
   }).join("");
   el.innerHTML=`<div class="trustWinner"><span class="muted">Сейчас больше доверяю</span><strong>${winner}</strong><b>${winnerScore}/100</b></div><div class="cameraSignal">${reason}</div><div class="trustRows">${airportRow}${ensembleRow}${cameraRow}${modelRows}</div><small class="muted">Эвристический рейтинг 0–100 для текущего состояния: свежесть + согласованность + сравнение с независимым наблюдением. Это не историческая статистическая точность.</small>`;
 }
-\nfunction renderCameraAnalysis(){
+
+function renderCameraAnalysis(){
   const el=$("cameraAnalysis");
   if(!el)return;
   const total=cameraObservations.length;

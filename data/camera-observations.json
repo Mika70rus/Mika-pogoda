@@ -4,8 +4,8 @@
     "name": "Плеханова, 4",
     "source": "Geocam / vtomske.ru",
     "status": "ok",
-    "captured_at": "2026-10-08T18:53:02.071783+00:00",
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "captured_at": "2026-10-08T19:18:43.174199+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 3,
     "diagnostic": {
       "selected_transport": "https",
@@ -28,9 +28,9 @@
     },
     "frame_width": 1920,
     "frame_height": 1080,
-    "brightness": 125.2,
-    "cloud_index": 91.9,
-    "temporal_motion": 0.59,
+    "brightness": 121.9,
+    "cloud_index": 91.8,
+    "temporal_motion": 0.49,
     "precipitation_signal": "осадки визуально не обнаружены",
     "visual_confidence": 0.45,
     "note": "Визуальный сигнал по серии кадров; не заменяет метеодатчик."
@@ -41,7 +41,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -69,7 +69,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -96,8 +96,8 @@
     "name": "Площадь Южная",
     "source": "Geocam / vtomske.ru",
     "status": "ok",
-    "captured_at": "2026-10-08T18:53:02.071783+00:00",
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "captured_at": "2026-10-08T19:18:43.174199+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 3,
     "diagnostic": {
       "selected_transport": "https",
@@ -120,7 +120,7 @@
     },
     "frame_width": 1920,
     "frame_height": 1080,
-    "brightness": 67.1,
+    "brightness": 67.6,
     "cloud_index": 87.8,
     "temporal_motion": 0.71,
     "precipitation_signal": "осадки визуально не обнаружены",
@@ -133,7 +133,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -161,7 +161,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -189,7 +189,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",
@@ -217,7 +217,7 @@
     "source": "Geocam / vtomske.ru",
     "status": "offline",
     "captured_at": null,
-    "checked_at": "2026-10-08T18:53:02.071783+00:00",
+    "checked_at": "2026-10-08T19:18:43.174199+00:00",
     "frames_captured": 0,
     "diagnostic": {
       "selected_transport": "https",

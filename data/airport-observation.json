@@ -3,10 +3,10 @@
   "name": "Томск · Богашёво",
   "source": "NOAA/NWS Aviation Weather Center · METAR",
   "status": "ok",
-  "observed_at": "2026-10-11T01:00:00.000Z",
+  "observed_at": "2026-10-11T01:30:00.000Z",
   "temp_c": 1.0,
   "dewpoint_c": 1.0,
-  "wind_dir_deg": 210,
+  "wind_dir_deg": 190,
   "wind_speed_kt": 6.0,
   "wind_gust_kt": null,
   "visibility_mi": "6+",
@@ -14,9 +14,9 @@
   "weather": "",
   "clouds": [
     {
-      "cover": "FEW",
-      "base": 600
+      "cover": "SCT",
+      "base": 500
     }
   ],
-  "raw": "METAR UNTT 110100Z 21003MPS 9999 FEW006 01/01 Q1027 R21/290155 NOSIG RMK QFE754/1006"
+  "raw": "METAR UNTT 110130Z 19003MPS 9999 SCT005 01/01 Q1027 R21/290155 NOSIG RMK QFE755/1006"
 }
